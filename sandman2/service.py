@@ -5,6 +5,7 @@ ORM models or a database introspection."""
 from flask import request, make_response
 import flask
 from flask.views import MethodView
+from sqlalchemy.inspection import inspect
 
 # Application imports
 from sandman2.exception import NotFoundException, BadRequestException
@@ -133,15 +134,23 @@ class Service(MethodView):
         an HTTP POST call.
 
         :returns: ``HTTP 201`` if a resource is properly created
-        :returns: ``HTTP 204`` if the resource already exists
+        :returns: ``HTTP 204`` if the resource already exists: an object with identical primary keys already exists.
         :returns: ``HTTP 400`` if the request is malformed or missing data
         """
-        resource = self.__model__.query.filter_by(**request.json).first()
-        if resource:
-            error_message = is_valid_method(self.__model__, resource)
-            if error_message:
-                raise BadRequestException(error_message)
-            return self._no_content_response()
+
+        primary_keys = [key.name for key in inspect(self.__model__).primary_key]
+        key_obj = {}
+        for key in primary_keys:
+            if key in request.json:
+                key_obj[key] = request.json[key]
+
+        if key_obj != {}:
+            resource = self.__model__.query.filter_by(**key_obj).first()
+            if resource:
+                error_message = is_valid_method(self.__model__, resource)
+                if error_message:
+                    raise BadRequestException(error_message)
+                return self._no_content_response()
 
         resource = self.__model__(**request.json)  # pylint: disable=not-callable
         error_message = is_valid_method(self.__model__, resource)
