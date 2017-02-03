@@ -2,6 +2,7 @@
 
 # Third-party imports
 from flask import Flask, current_app, jsonify
+from flask.ext.cors import CORS, cross_origin
 from sqlalchemy.sql import sqltypes
 
 # Application imports
@@ -60,6 +61,7 @@ def get_app(
             _reflect_all(exclude_tables, admin, read_only, schema=schema)
 
     @app.route('/')
+    @cross_origin()
     def index():
         """Return a list of routes to the registered classes."""
         routes = {}
