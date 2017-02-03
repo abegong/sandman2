@@ -22,6 +22,9 @@ def etag(func):
         response = make_response(response)
         etag_value = '"' + hashlib.md5(response.get_data()).hexdigest() + '"'
         response.headers['ETag'] = etag_value
+
+        response.headers['Access-Control-Allow-Origin'] = '*'
+
         if_match = request.headers.get('If-Match')
         if_none_match = request.headers.get('If-None-Match')
         if if_match:
