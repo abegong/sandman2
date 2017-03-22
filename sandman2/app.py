@@ -22,6 +22,9 @@ from sandman2.admin import CustomAdminView
 from flask_admin import Admin
 from flask_httpauth import HTTPBasicAuth
 
+import re
+from flask_cors import CORS
+
 # Augment sandman2's Model class with the Automap and Flask-SQLAlchemy model
 # classes
 auth = HTTPBasicAuth()
@@ -60,8 +63,11 @@ def get_app(
         with app.app_context():
             _reflect_all(exclude_tables, admin, read_only, schema=schema)
 
+
+    cors = CORS(app, resources={r"/*": {"origins": "*"}})
+
     @app.route('/')
-    @cross_origin()
+    # @cross_origin()
     def index():
         """Return a list of routes to the registered classes."""
         routes = {}
@@ -70,6 +76,7 @@ def get_app(
                 cls.__model__.__url__,
                 cls.__model__.primary_key())
         return jsonify(routes)
+
     return app
 
 
